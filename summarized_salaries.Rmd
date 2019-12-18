@@ -1,0 +1,88 @@
+---
+title: "Summary of UF Titles of Interest"
+author: "Philip Chase"
+date: "12/18/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+  tidyverse,
+  knitr
+)
+```
+
+```{r get_data, include=FALSE}
+emp_input_file <- "input/emp.csv"
+if (!file.exists(emp_input_file)) download.file("https://prod.flbog.net:4445/pls/apex/f?p=140:30:", emp_input_file)
+```
+
+## R Markdown
+
+```{r read, include=FALSE}
+col_types <- cols(
+  University = col_character(),
+  `Budget Entity` = col_character(),
+  `Position Number` = col_character(),
+  `Last Name` = col_character(),
+  `First Name` = col_character(),
+  MI = col_character(),
+  `Employee Type` = col_character(),
+  FTE = col_double(),
+  `Class Code` = col_character(),
+  `Class Title` = col_character(),
+  `Annual Salary` = col_double(),
+  `OPS Term Amount` = col_double()
+)
+
+emp <- read_csv(emp_input_file, col_types = col_types)
+
+```
+
+
+```{r titles, echo=FALSE}
+all_titles <- emp %>%
+  filter(University == "UF") %>%
+  distinct(`Class Title`)
+
+View(all_titles)
+
+View(all_titles %>% 
+  filter(str_detect(`Class Title`, str_to_upper("web"))))
+
+```
+
+```{r summarise, echo=FALSE}
+
+titles <- c("APPLIC DEVELOPER ANALYST I", "APPLIC DEVELOPER ANALYST II", "APPLIC DEVELOPER ANALYST III",
+            "APPLIC DEVELOPER ANALYST IV", "APPLIC DEVELOPER ANALYST V",
+            "DATA MANAGEMENT ANALYST I", "DATA MANAGEMENT ANALYST II", "DATA MANAGEMENT ANALYST III",
+            "BUSINESS RELATIONSHIP MGR I", "BUSINESS RELATIONSHIP MGR II", "BUSINESS RELATIONSHIP MGR III",
+            "IT MANAGER", "IT TRAINING SPECIALIST", "MGR, IT", "ASO DIR, IT", "DIR, IT",
+            "EDUCATION/TRAINING SPEC I", "EDUCATION/TRAINING SPEC II", "EDUCATION/TRAINING SPEC III",
+            "SYSTEMS ADMIN/PROGRAMMER III",
+            "SYSTEMS ADMIN/PROGRAMMER IV",
+            "SYSTEMS ADMIN/PROGRAMMER V",
+            "SYSTEMS ADMIN/PROGRAMMER I",
+            "SYSTEMS ADMIN/PROGRAMMER II",
+            "WEB DESIGNER I",
+            "WEB DESIGNER II",
+            "WEB DEVELOPER I",
+            "WEB DEVELOPER II",
+            "WEB DEVELOPER III"
+            )
+summary_stats_by_title <- emp %>%
+  filter(University == "UF") %>%
+  filter(`Class Title` %in% titles) %>%
+  group_by(`Budget Entity`, `Position Number`, `Last Name`, `First Name`, `Class Title`) %>%
+  summarise(salary = sum(`Annual Salary`), fte = sum(FTE)) %>%
+  filter(fte >= 0.95) %>%
+  group_by(`Class Title`) %>%
+  summarise(count = n(), max = max(salary), q3 = quantile(salary)[[4]],  mean = mean(salary), median = median(salary), q1 = quantile(salary)[[2]], min = min(salary))
+
+View(summary_stats_by_title)
+kable(summary_stats_by_title)
+```
