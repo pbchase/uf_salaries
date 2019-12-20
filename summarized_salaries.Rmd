@@ -1,7 +1,7 @@
 ---
 title: "Summary of UF Titles of Interest"
 author: "Philip Chase"
-date: "12/18/2019"
+date: "12/20/2019"
 output: html_document
 ---
 
@@ -19,8 +19,6 @@ pacman::p_load(
 emp_input_file <- "input/emp.csv"
 if (!file.exists(emp_input_file)) download.file("https://prod.flbog.net:4445/pls/apex/f?p=140:30:", emp_input_file)
 ```
-
-## R Markdown
 
 ```{r read, include=FALSE}
 col_types <- cols(
@@ -54,6 +52,13 @@ View(all_titles %>%
   filter(str_detect(`Class Title`, str_to_upper("web"))))
 
 ```
+# Summary Stats for Annualized Salaries
+
+The titles included here are a subset of the titles in use at the University of Florida. These titles were of particular interest to my team when we I wrote this report.
+
+The data shown here sum and annualize the salaries from different funding sources by `Position Number` and `Class Title`. For example, if Jane Doe works 3/4 time as an Application Developer Analyst IV with funding from two different sources at $25,000 and $50,000, those records will be summarized into one record for Jane working 3/4 time for $75,000/year. From that data her _Annualized Salary_ will be computed as salary/FTE = $75,000/0.75 = $100,000. It is this _annualized salary_ from which we compute the summary statistics. 
+
+These stats are valid for estimating fair pay for time worked. They are _not_ suitable for estimating the cost of these titles to UF. 
 
 ```{r summarise, echo=FALSE}
 
@@ -79,10 +84,15 @@ summary_stats_by_title <- emp %>%
   filter(`Class Title` %in% titles) %>%
   group_by(`Budget Entity`, `Position Number`, `Last Name`, `First Name`, `Class Title`) %>%
   summarise(salary = sum(`Annual Salary`), fte = sum(FTE)) %>%
-  filter(fte >= 0.95) %>%
+  mutate(annualized_salary = salary/fte) %>%
   group_by(`Class Title`) %>%
-  summarise(count = n(), max = max(salary), q3 = quantile(salary)[[4]],  mean = mean(salary), median = median(salary), q1 = quantile(salary)[[2]], min = min(salary))
+  summarise(Count = n(), Maximum = round(max(annualized_salary)), 
+            `Quartile 3` = round(quantile(annualized_salary)[[4]]),
+            Mean = round(mean(annualized_salary)), 
+            Median = round(median(annualized_salary)), 
+            `Quartile 1` = round(quantile(annualized_salary)[[2]]), 
+            Minimum = round(min(annualized_salary)))
 
 View(summary_stats_by_title)
-kable(summary_stats_by_title)
+kable(summary_stats_by_title, caption = "Summary statistics of annualized salaries for select titles")
 ```
