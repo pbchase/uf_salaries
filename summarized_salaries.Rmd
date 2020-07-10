@@ -1,7 +1,7 @@
 ---
 title: "Summary of UF Titles of Interest"
 author: "Philip Chase"
-date: "12/20/2019"
+date: "07/10/2020"
 output: html_document
 ---
 
@@ -41,7 +41,7 @@ emp <- read_csv(emp_input_file, col_types = col_types)
 ```
 
 
-```{r titles, echo=FALSE}
+```{r titles, echo=FALSE, message = FALSE}
 all_titles <- emp %>%
   filter(University == "UF") %>%
   distinct(`Class Title`)
@@ -60,7 +60,7 @@ The data shown here sum and annualize the salaries from different funding source
 
 These stats are valid for estimating fair pay for time worked. They are _not_ suitable for estimating the cost of these titles to UF. 
 
-```{r summarise, echo=FALSE}
+```{r summarise, echo=FALSE, message = FALSE}
 
 titles <- c("APPLIC DEVELOPER ANALYST I", "APPLIC DEVELOPER ANALYST II", "APPLIC DEVELOPER ANALYST III",
             "APPLIC DEVELOPER ANALYST IV", "APPLIC DEVELOPER ANALYST V",
